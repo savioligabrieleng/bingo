@@ -162,123 +162,29 @@
         const drawnCountElement = document.getElementById('drawnCount');
         const ttsAudio = document.getElementById('ttsAudio');
 
-        const API_KEY = ""; // A chave API será fornecida pelo ambiente
+        // Configuração da API Gemini (preferencial)
+        const API_KEY = ""; 
         const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
-        const TTS_VOICE = "Kore"; // Voz firme e clara em português
+        const TTS_VOICE = "Kore"; 
 
-        // Lista de frases (mais de 50 para cada)
-        const PRE_DRAW_PHRASES = [
-            "Preparem suas cartelas! A sorte está no ar...",
-            "Misturando as bolinhas... Quem será o felizardo da vez?",
-            "Respiração funda! O próximo número está prestes a sair...",
-            "Atenção total! O sorteio está começando, é agora ou nunca!",
-            "Segurem o coração! Vem aí mais um número que vai mudar o jogo...",
-            "A esfera está girando, a sorte está rolando!",
-            "É hora de conferir a cartela, a emoção está no máximo!",
-            "Qual será o próximo número que vai completar a sua linha?",
-            "Aguardando o destino... Três segundos de silêncio (quase) total!",
-            "Façam suas preces! Precisamos daquele número especial.",
-            "De olho na bolinha! Concentração total, pessoal!",
-            "Temos que sortear, mas antes... Aquele suspense clássico!",
-            "A bolinha que faltava pode estar chegando! Prontos?",
-            "Contagem regressiva mental... O próximo número é surpresa!",
-            "Verifiquem duas vezes suas cartelas, o jogo acelera agora!",
-            "Que a sorte sorria para quem mais precisa!",
-            "Um número novinho saindo do forno!",
-            "Alô, alô, quem está quase batendo Bingo?",
-            "O universo está conspirando para o seu número!",
-            "Quase lá, quase lá... Suspense no ar!",
-            "Giro, giro, giro... Qual será o sortudo?",
-            "O clima está quente, o número está saindo!",
-            "Preparem os marcadores!",
-            "Vamos esquentar o motor do sorteio!",
-            "O mistério da bolinha!",
-            "A sorte já está vindo!",
-            "O silêncio antes da tempestade de números!",
-            "Quem arrisca um palpite?",
-            "Bolas a postos!",
-            "O show vai começar!",
-            "Tudo pronto para o próximo número?",
-            "Alerta de sorte!",
-            "A tensão é palpável!",
-            "Concentração máxima!",
-            "Vamos agitar essa jogada!",
-            "A roda da fortuna gira...",
-            "O momento da verdade se aproxima!",
-            "Controle de ansiedade, por favor!",
-            "Um passo mais perto do Bingo!",
-            "O sorteio não para!",
-            "Bolinha na mão, número na tela!",
-            "É tempo de fechar a cartela!",
-            "Vou contar até três, mentalmente...",
-            "Respirem fundo e acreditem!",
-            "Aquele número que faz o coração bater mais forte!",
-            "Sorteio autorizado!",
-            "O suspense faz parte do show!",
-            "Chegou a hora de sortear!",
-            "Vamos lá, bolinha querida!",
-            "Preparando o grande número!",
-        ];
-
-        const POST_DRAW_PHRASES = [
-            "Bingo! Ops, ainda não, mas o **{number}** já saiu, anota aí!",
-            "O **{number}** chegou! Ele veio para completar a sua festa!",
-            "Lá vem ele, o **{number}**, direto para a sua cartela!",
-            "O sortudo é o **{number}**! Ele estava escondido!",
-            "Saiu o **{number}**! Já marcou na cartela?",
-            "Tiramos o **{number}**, confere se ele está aí!",
-            "É o **{number}**! Esse veio da sorte grande!",
-            "Que beleza! O **{number}** na área!",
-            "Acabou o suspense: **{number}**!",
-            "Direto da urna, o **{number}**!",
-            "O **{number}** é o novo rei do pedaço!",
-            "Olha a bolinha, olha a bolinha... É o **{number}**!",
-            "Mais um para a conta: **{number}**!",
-            "A nota do dia é **{number}**!",
-            "Se você tem o **{number}**, corre pra marcar!",
-            "Ele veio de mansinho, o **{number}**!",
-            "O **{number}** bateu na porta e resolveu entrar!",
-            "Chegou o **{number}**! Que número lindo!",
-            "Bolinha falante! Ela diz que é o **{number}**!",
-            "Marca, marca, marca o **{number}**!",
-            "O número que faltava é o **{number}**!",
-            "Pode marcar sem medo, é o **{number}**!",
-            "O **{number}** veio para fazer a diferença!",
-            "Seja bem-vindo, **{number}**!",
-            "Direto do Forno! **{number}**!",
-            "O **{number}** já está na lista!",
-            "O sortudo que saiu agora é o **{number}**!",
-            "Vibrando com o **{number}**!",
-            "O **{number}** veio te dar sorte!",
-            "Quem disse que não ia sair? Saiu o **{number}**!",
-            "Esse é o **{number}**! Anota ele na parede!",
-            "O **{number}** é a chave da vitória!",
-            "Foco no **{number}**!",
-            "Vem com tudo, **{number}**!",
-            "Marque com força, é o **{number}**!",
-            "A surpresa do dia é o **{number}**!",
-            "Olha que número caprichado: **{number}**!",
-            "Se não for o **{number}**, eu nem jogo!",
-            "O **{number}** é um presente!",
-            "Alegria, alegria! Saiu o **{number}**!",
-            "O **{number}** chegou chegando!",
-            "Esse **{number}** é especial!",
-            "Obrigado por sair, **{number}**!",
-            "O **{number}** não podia faltar!",
-            "Seu dia de sorte tem o **{number}**!",
-            "O **{number}** é o número da sorte!",
-            "Tanto mistério para o **{number}**!",
-            "Não perde tempo, marca o **{number}**!",
-            "O **{number}** veio para brilhar!",
-            "A emoção do **{number}**!",
-        ];
+        // Configuração da API Nativa do Navegador (Fallback)
+        const synth = window.speechSynthesis;
+        let ptVoice = null;
+        
+        // Tenta encontrar uma voz em português do Brasil ou de Portugal
+        function setPtVoice() {
+            if (synth.getVoices().length === 0) {
+                synth.onvoiceschanged = () => { setPtVoice(); };
+                return;
+            }
+            ptVoice = synth.getVoices().find(voice => 
+                voice.lang.includes('pt-BR') || voice.lang.includes('pt-PT')
+            );
+        }
+        setPtVoice();
 
 
-        // === FUNÇÕES TTS (PCM -> WAV) ===
-
-        /**
-         * Converte uma string Base64 em um ArrayBuffer.
-         */
+        // === FUNÇÕES TTS (PCM -> WAV) - Usadas pela API Gemini ===
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
             const len = binaryString.length;
@@ -289,44 +195,36 @@
             return bytes.buffer;
         }
 
-        /**
-         * Converte dados PCM de 16 bits para um Blob WAV.
-         */
         function pcmToWav(pcm16, sampleRate = 24000) {
             const numChannels = 1;
-            const bytesPerSample = 2; // 16 bits
+            const bytesPerSample = 2; 
             const blockAlign = numChannels * bytesPerSample;
             const byteRate = sampleRate * blockAlign;
 
             const buffer = new ArrayBuffer(44 + pcm16.length * bytesPerSample);
             const view = new DataView(buffer);
 
-            // RIFF chunk
             writeString(view, 0, 'RIFF');
             view.setUint32(4, 36 + pcm16.length * bytesPerSample, true);
             writeString(view, 8, 'WAVE');
 
-            // FMT sub-chunk
             writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true); // Sub-chunk size: 16
-            view.setUint16(20, 1, true); // Audio format: 1 (PCM)
-            view.setUint16(22, numChannels, true); // Number of channels
-            view.setUint32(24, sampleRate, true); // Sample rate
-            view.setUint32(28, byteRate, true); // Byte rate
-            view.setUint16(32, blockAlign, true); // Block align
-            view.setUint16(34, bytesPerSample * 8, true); // Bits per sample
+            view.setUint32(16, 16, true); 
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, numChannels, true); 
+            view.setUint32(24, sampleRate, true); 
+            view.setUint32(28, byteRate, true); 
+            view.setUint16(32, blockAlign, true); 
+            view.setUint16(34, bytesPerSample * 8, true); 
 
-            // DATA sub-chunk
             writeString(view, 36, 'data');
-            view.setUint32(40, pcm16.length * bytesPerSample, true); // Data size
+            view.setUint32(40, pcm16.length * bytesPerSample, true); 
 
-            // Write PCM data
             let offset = 44;
             for (let i = 0; i < pcm16.length; i++) {
                 view.setInt16(offset, pcm16[i], true);
                 offset += 2;
             }
-
             return new Blob([view], { type: 'audio/wav' });
         }
 
@@ -336,28 +234,16 @@
             }
         }
         
-        /**
-         * Gera e reproduz o áudio TTS.
-         * @param {string} text - O texto a ser falado.
-         * @returns {Promise<void>} - Resolve quando a reprodução termina.
-         */
-        async function speakText(text) {
-            if (!text) return;
+        // === FUNÇÕES DE FALA ===
 
-            const payload = {
-                contents: [{
-                    parts: [{ text: text }]
-                }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: {
-                        voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: TTS_VOICE }
-                        }
-                    }
-                },
-                model: "gemini-2.5-flash-preview-tts"
-            };
+        /**
+         * Usa a API Gemini (preferencial) para gerar áudio com voz de alta qualidade.
+         */
+        async function speakWithGemini(text) {
+            if (!API_KEY) {
+                console.warn("API Key ausente. Usando Web Speech API como fallback.");
+                return false; // Retorna falso para acionar o fallback
+            }
 
             soundIconElement.classList.add('opacity-100', 'text-speaking');
 
@@ -365,7 +251,14 @@
                 let response = await fetchWithRetry(TTS_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: text }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: TTS_VOICE } } }
+                        },
+                        model: "gemini-2.5-flash-preview-tts"
+                    })
                 });
                 
                 const result = await response.json();
@@ -375,45 +268,86 @@
                 const mimeType = part?.inlineData?.mimeType;
 
                 if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                    // Extrai a sample rate (ex: audio/L16;rate=24000)
                     const rateMatch = mimeType.match(/rate=(\d+)/);
                     const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
                     
-                    // Converte base64 para ArrayBuffer e depois para Int16Array (PCM 16-bit)
                     const pcmData = base64ToArrayBuffer(audioData);
                     const pcm16 = new Int16Array(pcmData);
-                    
-                    // Converte PCM para Blob WAV e cria a URL
                     const wavBlob = pcmToWav(pcm16, sampleRate);
                     const audioUrl = URL.createObjectURL(wavBlob);
 
-                    // Reproduz
-                    ttsAudio.src = audioUrl;
-                    
                     return new Promise((resolve) => {
+                        ttsAudio.src = audioUrl;
                         ttsAudio.onended = () => {
-                            URL.revokeObjectURL(audioUrl); // Limpa a URL do Blob
+                            URL.revokeObjectURL(audioUrl); 
                             soundIconElement.classList.remove('opacity-100', 'text-speaking');
-                            resolve();
+                            resolve(true); // Sucesso
                         };
                         ttsAudio.play().catch(e => {
-                            console.error("Erro ao tentar tocar áudio:", e);
+                            console.error("Erro ao tocar áudio Gemini:", e);
                             soundIconElement.classList.remove('opacity-100', 'text-speaking');
-                            resolve(); // Resolve mesmo se houver erro de reprodução
+                            resolve(false); // Falha na reprodução
                         });
                     });
                 } else {
-                    console.error("Resposta de áudio inválida ou incompleta.");
+                    console.error("Resposta de áudio Gemini inválida.");
+                    return false; // Falha
                 }
 
             } catch (error) {
-                console.error("Erro na chamada TTS:", error);
+                console.error("Erro na chamada TTS Gemini. Tentando fallback...", error);
+                return false; // Falha
             } finally {
-                // Remove o ícone de som caso não tenha resolvido pela promessa (ex: erro)
                 soundIconElement.classList.remove('opacity-100', 'text-speaking');
             }
         }
         
+        /**
+         * Usa a Web Speech API nativa do navegador (como fallback).
+         */
+        async function speakWithWebSpeech(text) {
+            if (!synth) {
+                console.error("Web Speech API não suportada neste navegador.");
+                return;
+            }
+            
+            soundIconElement.classList.add('opacity-100', 'text-speaking');
+            
+            return new Promise(resolve => {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'pt-PT';
+                if (ptVoice) {
+                    utterance.voice = ptVoice;
+                } else {
+                    // Tenta forçar PT
+                    utterance.lang = 'pt-BR'; 
+                }
+
+                utterance.onend = () => {
+                    soundIconElement.classList.remove('opacity-100', 'text-speaking');
+                    resolve();
+                };
+                
+                // Evita problemas de reprodução bloqueada em alguns navegadores
+                setTimeout(() => {
+                    synth.speak(utterance);
+                }, 100); 
+            });
+        }
+        
+        /**
+         * Funçaõ principal de fala com fallback.
+         */
+        async function speakText(text) {
+            // 1. Tenta a API Gemini
+            const success = await speakWithGemini(text);
+
+            // 2. Se a API falhou (por falta de chave ou erro), usa o fallback do navegador
+            if (!success) {
+                await speakWithWebSpeech(text);
+            }
+        }
+
         /**
          * Wrapper de fetch com retry para lidar com throttling.
          */
@@ -421,11 +355,10 @@
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(url, options);
-                    if (response.status !== 429) { // 429 Too Many Requests
+                    if (response.status !== 429) { 
                         return response;
                     }
                 } catch (error) {
-                    // Ignora erros de rede e tenta novamente
                     if (i === maxRetries - 1) throw error;
                 }
                 await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
@@ -435,6 +368,63 @@
 
 
         // === FUNÇÕES DE LÓGICA DO JOGO ===
+
+        // Lista de frases (mais de 50 para cada)
+        const PRE_DRAW_PHRASES = [
+            "Preparem suas cartelas! A sorte está no ar...", "Misturando as bolinhas... Quem será o felizardo da vez?", 
+            "Respiração funda! O próximo número está prestes a sair...", "Atenção total! O sorteio está começando, é agora ou nunca!",
+            "Segurem o coração! Vem aí mais um número que vai mudar o jogo...", "A esfera está girando, a sorte está rolando!",
+            "É hora de conferir a cartela, a emoção está no máximo!", "Qual será o próximo número que vai completar a sua linha?",
+            "Aguardando o destino... Três segundos de silêncio (quase) total!", "Façam suas preces! Precisamos daquele número especial.",
+            "De olho na bolinha! Concentração total, pessoal!", "Temos que sortear, mas antes... Aquele suspense clássico!",
+            "A bolinha que faltava pode estar chegando! Prontos?", "Contagem regressiva mental... O próximo número é surpresa!",
+            "Verifiquem duas vezes suas cartelas, o jogo acelera agora!", "Que a sorte sorria para quem mais precisa!",
+            "Um número novinho saindo do forno!", "Alô, alô, quem está quase batendo Bingo?",
+            "O universo está conspirando para o seu número!", "Quase lá, quase lá... Suspense no ar!",
+            "Giro, giro, giro... Qual será o sortudo?", "O clima está quente, o número está saindo!",
+            "Preparem os marcadores!", "Vamos esquentar o motor do sorteio!",
+            "O mistério da bolinha!", "A sorte já está vindo!",
+            "O silêncio antes da tempestade de números!", "Quem arrisca um palpite?",
+            "Bolas a postos!", "O show vai começar!",
+            "Tudo pronto para o próximo número?", "Alerta de sorte!",
+            "A tensão é palpável!", "Concentração máxima!",
+            "Vamos agitar essa jogada!", "A roda da fortuna gira...",
+            "O momento da verdade se aproxima!", "Controle de ansiedade, por favor!",
+            "Um passo mais perto do Bingo!", "O sorteio não para!",
+            "Bolinha na mão, número na tela!", "É tempo de fechar a cartela!",
+            "Vou contar até três, mentalmente...", "Respirem fundo e acreditem!",
+            "Aquele número que faz o coração bater mais forte!", "Sorteio autorizado!",
+            "O suspense faz parte do show!", "Chegou a hora de sortear!",
+            "Vamos lá, bolinha querida!", "Preparando o grande número!",
+        ];
+
+        const POST_DRAW_PHRASES = [
+            "Bingo! Ops, ainda não, mas o {number} já saiu, anota aí!", "O {number} chegou! Ele veio para completar a sua festa!",
+            "Lá vem ele, o {number}, direto para a sua cartela!", "O sortudo é o {number}! Ele estava escondido!",
+            "Saiu o {number}! Já marcou na cartela?", "Tiramos o {number}, confere se ele está aí!",
+            "É o {number}! Esse veio da sorte grande!", "Que beleza! O {number} na área!",
+            "Acabou o suspense: {number}!", "Direto da urna, o {number}!",
+            "O {number} é o novo rei do pedaço!", "Olha a bolinha, olha a bolinha... É o {number}!",
+            "Mais um para a conta: {number}!", "A nota do dia é {number}!",
+            "Se você tem o {number}, corre pra marcar!", "Ele veio de mansinho, o {number}!",
+            "O {number} bateu na porta e resolveu entrar!", "Chegou o {number}! Que número lindo!",
+            "Bolinha falante! Ela diz que é o {number}!", "Marca, marca, marca o {number}!",
+            "O número que faltava é o {number}!", "Pode marcar sem medo, é o {number}!",
+            "O {number} veio para fazer a diferença!", "Seja bem-vindo, {number}!",
+            "Direto do Forno! {number}!", "O {number} já está na lista!",
+            "O sortudo que saiu agora é o {number}!", "Vibrando com o {number}!",
+            "O {number} veio te dar sorte!", "Quem disse que não ia sair? Saiu o {number}!",
+            "Esse é o {number}! Anota ele na parede!", "O {number} é a chave da vitória!",
+            "Foco no {number}!", "Vem com tudo, {number}!",
+            "Marque com força, é o {number}!", "A surpresa do dia é o {number}!",
+            "Olha que número caprichado: {number}!", "Se não for o {number}, eu nem jogo!",
+            "O {number} é um presente!", "Alegria, alegria! Saiu o {number}!",
+            "O {number} chegou chegando!", "Esse {number} é especial!",
+            "Obrigado por sair, {number}!", "O {number} não podia faltar!",
+            "Seu dia de sorte tem o {number}!", "O {number} é o número da sorte!",
+            "Tanto mistério para o {number}!", "Não perde tempo, marca o {number}!",
+            "O {number} veio para brilhar!", "A emoção do {number}!",
+        ];
 
         /**
          * Inicializa o jogo.
@@ -470,7 +460,9 @@
             lastDrawnElement.textContent = '--';
 
             if (availableNumbers.length === 0) {
-                messageTextElement.textContent = 'FIM DE JOGO! Todos os 99 números foram sorteados.';
+                const finishMessage = 'FIM DE JOGO! Todos os 99 números foram sorteados.';
+                messageTextElement.textContent = finishMessage;
+                await speakText(finishMessage);
                 drawButton.disabled = true;
                 isDrawing = false;
                 return;
@@ -549,4 +541,3 @@
     </script>
 </body>
 </html>
-
