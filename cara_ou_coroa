@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cara ou Coroa</title>
+    <!-- Carrega Tailwind CSS para estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { font-family: 'Inter', sans-serif; }
+        .coin {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #fcd34d; /* Dourado */
+            border: 8px solid #b45309;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #b45309;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.5s ease;
+        }
+        .flipping {
+            animation: flip 0.7s infinite linear;
+        }
+        @keyframes flip {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-4 min-h-screen font-sans">
+    
+    <!-- Botão de Voltar ao Menu -->
+    <a href="index.html" class="absolute top-4 left-4 text-blue-600 hover:text-blue-800 font-semibold flex items-center transition duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Voltar ao Menu
+    </a>
+
+    <div class="max-w-xl mx-auto text-center py-8 pt-16">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+            Cara ou Coroa (Moeda)
+        </h1>
+        <p class="text-lg text-gray-600 mb-8">
+            Clique no botão para sortear o resultado.
+        </p>
+
+        <!-- Display da Moeda -->
+        <div class="flex justify-center mb-10">
+            <div id="coin" class="coin">
+                ?
+            </div>
+        </div>
+        
+        <!-- Mensagem de Resultado -->
+        <p id="resultMessage" class="text-2xl font-bold text-gray-800 min-h-[40px] mb-8">
+            Pronto para jogar!
+        </p>
+
+        <!-- Botão de Ação -->
+        <button id="flipButton" 
+                class="w-full max-w-xs py-4 px-6 bg-purple-600 hover:bg-purple-700 text-white text-xl font-extrabold rounded-xl transition duration-200 shadow-lg focus:outline-none focus:ring-4 focus:ring-purple-300 disabled:opacity-50">
+            Lançar a Moeda
+        </button>
+    </div>
+
+    <script>
+        const coinElement = document.getElementById('coin');
+        const resultMessage = document.getElementById('resultMessage');
+        const flipButton = document.getElementById('flipButton');
+        let isFlipping = false;
+
+        function flipCoin() {
+            if (isFlipping) return;
+            isFlipping = true;
+            flipButton.disabled = true;
+            resultMessage.textContent = 'Lançando...';
+            coinElement.classList.add('flipping');
+            coinElement.textContent = '?';
+
+            // Simula o lançamento por 1.5 segundos
+            setTimeout(() => {
+                coinElement.classList.remove('flipping');
+                
+                // 0 = Cara, 1 = Coroa
+                const result = Math.floor(Math.random() * 2); 
+                
+                let textResult;
+                let displayResult;
+
+                if (result === 0) {
+                    textResult = "Deu Cara!";
+                    displayResult = "C"; 
+                    coinElement.style.backgroundColor = '#facc15'; // Amarelo mais claro
+                } else {
+                    textResult = "Deu Coroa!";
+                    displayResult = "K"; // K de King/Crown
+                    coinElement.style.backgroundColor = '#fb923c'; // Laranja
+                }
+                
+                coinElement.textContent = displayResult;
+                resultMessage.textContent = textResult;
+                
+                isFlipping = false;
+                flipButton.disabled = false;
+            }, 1500);
+        }
+
+        flipButton.addEventListener('click', flipCoin);
+    </script>
+</body>
+</html>
