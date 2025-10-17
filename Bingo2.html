@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteador de Números de Bingo (1-99)</title>
+    <!-- Carrega Tailwind CSS para estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter (padrão do Tailwind) */
+        :root {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Estilo para a caixa do número sorteado */
+        .drawn-number-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background-color: #ef4444; /* Vermelho vibrante */
+            color: white;
+            font-size: 8rem;
+            font-weight: 900;
+            margin: 2rem auto;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+            user-select: none;
+        }
+        
+        /* Efeito ao sortear (suspense) */
+        .drawn-number-box.drawing {
+            transform: scale(1.1) rotate(5deg);
+            background-color: #f97316; /* Laranja */
+            transition: background-color 0.1s;
+        }
+
+        /* Estilo para o momento da revelação */
+        .drawn-number-box.revealed {
+            animation: pulse 0.3s ease-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Estilos dos números já sorteados */
+        .drawn-history-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 1.5rem;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+        }
+
+        .history-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%;
+            background-color: #3b82f6; /* Azul */
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        /* Estilo para o último número sorteado na lista */
+        .history-number.last-drawn {
+            background-color: #10b981; /* Verde */
+            transform: scale(1.1);
+        }
+
+        /* Ícone de som para indicar que o áudio está tocando */
+        #soundIcon {
+            transition: opacity 0.3s;
+        }
+        .text-speaking {
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(-5%); }
+            50% { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-4 min-h-screen font-sans">
+
+    <div class="max-w-4xl mx-auto text-center py-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">Sorteador Oficial de Bingo</h1>
+        <p class="text-lg sm:text-xl text-gray-600">Números disponíveis: <span class="font-bold text-blue-600">1 a 99</span></p>
+    </div>
+
+    <!-- Controles Principais: Apenas o botão de Sorteio -->
+    <div class="mb-8 max-w-sm mx-auto">
+        <button id="drawButton" 
+                class="w-full py-5 px-6 bg-green-600 hover:bg-green-700 text-white text-xl sm:text-2xl font-extrabold rounded-xl transition duration-200 shadow-lg focus:outline-none focus:ring-4 focus:ring-green-300 disabled:opacity-50">
+            Sortear Próximo Número
+        </button>
+    </div>
+
+    <!-- Display do Último Número Sorteado -->
+    <div class="flex flex-col items-center">
+        <!-- Caixa de Mensagem (com ícone de som) -->
+        <p id="statusMessage" class="text-lg sm:text-xl font-semibold text-gray-700 mb-4 min-h-[24px] flex items-center justify-center text-center px-2">
+            <span id="soundIcon" class="mr-2 opacity-0">🔊</span>
+            <span id="messageText">Pronto para começar!</span>
+        </p>
+
+        <!-- Bola do Sorteio -->
+        <div id="lastDrawnNumber" class="drawn-number-box">
+            --
+        </div>
+    </div>
+
+    <!-- Histórico de Sorteios -->
+    <div class="max-w-4xl mx-auto mt-10 px-2">
+        <h2 class="text-xl sm:text-2xl font-bold text-gray-800 border-b pb-2 mb-4">Histórico de Números Sorteados (<span id="drawnCount">0</span>/99)</h2>
+        <div id="drawnHistory" class="drawn-history-grid">
+            <!-- Números sorteados aparecerão aqui -->
+        </div>
+    </div>
+    
+    <!-- Botão de Reiniciar (Movido para o FIM da Página) -->
+    <div class="max-w-xs mx-auto mt-12 mb-8">
+        <button id="resetButton" 
+                class="w-full py-3 px-6 bg-gray-500 hover:bg-gray-600 text-white text-base font-bold rounded-xl transition duration-200 shadow-md focus:outline-none focus:ring-4 focus:ring-gray-300">
+            Reiniciar Jogo
+        </button>
+    </div>
+
+    <!-- Elemento Audio Oculto -->
+    <audio id="ttsAudio" style="display: none;"></audio>
+
+    <script>
+        // === CONFIGURAÇÃO E DADOS ===
+        const MAX_NUMBER = 99;
+        const DRAW_DELAY_MS = 3000; // 3 segundos de suspense
+
+        let availableNumbers = [];
+        let drawnNumbers = [];
+        let isDrawing = false; // Flag para prevenir cliques duplos
+
+        // Elementos do DOM
+        const lastDrawnElement = document.getElementById('lastDrawnNumber');
+        const drawnHistoryElement = document.getElementById('drawnHistory');
+        const drawButton = document.getElementById('drawButton');
+        const resetButton = document.getElementById('resetButton');
+        const messageTextElement = document.getElementById('messageText');
+        const soundIconElement = document.getElementById('soundIcon');
+        const drawnCountElement = document.getElementById('drawnCount');
+        const ttsAudio = document.getElementById('ttsAudio');
+
+        const API_KEY = ""; // A chave API será fornecida pelo ambiente
+        const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+        const TTS_VOICE = "Kore"; // Voz firme e clara em português
+
+        // Lista de frases (mais de 50 para cada)
+        const PRE_DRAW_PHRASES = [
+            "Preparem suas cartelas! A sorte está no ar...",
+            "Misturando as bolinhas... Quem será o felizardo da vez?",
+            "Respiração funda! O próximo número está prestes a sair...",
+            "Atenção total! O sorteio está começando, é agora ou nunca!",
+            "Segurem o coração! Vem aí mais um número que vai mudar o jogo...",
+            "A esfera está girando, a sorte está rolando!",
+            "É hora de conferir a cartela, a emoção está no máximo!",
+            "Qual será o próximo número que vai completar a sua linha?",
+            "Aguardando o destino... Três segundos de silêncio (quase) total!",
+            "Façam suas preces! Precisamos daquele número especial.",
+            "De olho na bolinha! Concentração total, pessoal!",
+            "Temos que sortear, mas antes... Aquele suspense clássico!",
+            "A bolinha que faltava pode estar chegando! Prontos?",
+            "Contagem regressiva mental... O próximo número é surpresa!",
+            "Verifiquem duas vezes suas cartelas, o jogo acelera agora!",
+            "Que a sorte sorria para quem mais precisa!",
+            "Um número novinho saindo do forno!",
+            "Alô, alô, quem está quase batendo Bingo?",
+            "O universo está conspirando para o seu número!",
+            "Quase lá, quase lá... Suspense no ar!",
+            "Giro, giro, giro... Qual será o sortudo?",
+            "O clima está quente, o número está saindo!",
+            "Preparem os marcadores!",
+            "Vamos esquentar o motor do sorteio!",
+            "O mistério da bolinha!",
+            "A sorte já está vindo!",
+            "O silêncio antes da tempestade de números!",
+            "Quem arrisca um palpite?",
+            "Bolas a postos!",
+            "O show vai começar!",
+            "Tudo pronto para o próximo número?",
+            "Alerta de sorte!",
+            "A tensão é palpável!",
+            "Concentração máxima!",
+            "Vamos agitar essa jogada!",
+            "A roda da fortuna gira...",
+            "O momento da verdade se aproxima!",
+            "Controle de ansiedade, por favor!",
+            "Um passo mais perto do Bingo!",
+            "O sorteio não para!",
+            "Bolinha na mão, número na tela!",
+            "É tempo de fechar a cartela!",
+            "Vou contar até três, mentalmente...",
+            "Respirem fundo e acreditem!",
+            "Aquele número que faz o coração bater mais forte!",
+            "Sorteio autorizado!",
+            "O suspense faz parte do show!",
+            "Chegou a hora de sortear!",
+            "Vamos lá, bolinha querida!",
+            "Preparando o grande número!",
+        ];
+
+        const POST_DRAW_PHRASES = [
+            "Bingo! Ops, ainda não, mas o **{number}** já saiu, anota aí!",
+            "O **{number}** chegou! Ele veio para completar a sua festa!",
+            "Lá vem ele, o **{number}**, direto para a sua cartela!",
+            "O sortudo é o **{number}**! Ele estava escondido!",
+            "Saiu o **{number}**! Já marcou na cartela?",
+            "Tiramos o **{number}**, confere se ele está aí!",
+            "É o **{number}**! Esse veio da sorte grande!",
+            "Que beleza! O **{number}** na área!",
+            "Acabou o suspense: **{number}**!",
+            "Direto da urna, o **{number}**!",
+            "O **{number}** é o novo rei do pedaço!",
+            "Olha a bolinha, olha a bolinha... É o **{number}**!",
+            "Mais um para a conta: **{number}**!",
+            "A nota do dia é **{number}**!",
+            "Se você tem o **{number}**, corre pra marcar!",
+            "Ele veio de mansinho, o **{number}**!",
+            "O **{number}** bateu na porta e resolveu entrar!",
+            "Chegou o **{number}**! Que número lindo!",
+            "Bolinha falante! Ela diz que é o **{number}**!",
+            "Marca, marca, marca o **{number}**!",
+            "O número que faltava é o **{number}**!",
+            "Pode marcar sem medo, é o **{number}**!",
+            "O **{number}** veio para fazer a diferença!",
+            "Seja bem-vindo, **{number}**!",
+            "Direto do Forno! **{number}**!",
+            "O **{number}** já está na lista!",
+            "O sortudo que saiu agora é o **{number}**!",
+            "Vibrando com o **{number}**!",
+            "O **{number}** veio te dar sorte!",
+            "Quem disse que não ia sair? Saiu o **{number}**!",
+            "Esse é o **{number}**! Anota ele na parede!",
+            "O **{number}** é a chave da vitória!",
+            "Foco no **{number}**!",
+            "Vem com tudo, **{number}**!",
+            "Marque com força, é o **{number}**!",
+            "A surpresa do dia é o **{number}**!",
+            "Olha que número caprichado: **{number}**!",
+            "Se não for o **{number}**, eu nem jogo!",
+            "O **{number}** é um presente!",
+            "Alegria, alegria! Saiu o **{number}**!",
+            "O **{number}** chegou chegando!",
+            "Esse **{number}** é especial!",
+            "Obrigado por sair, **{number}**!",
+            "O **{number}** não podia faltar!",
+            "Seu dia de sorte tem o **{number}**!",
+            "O **{number}** é o número da sorte!",
+            "Tanto mistério para o **{number}**!",
+            "Não perde tempo, marca o **{number}**!",
+            "O **{number}** veio para brilhar!",
+            "A emoção do **{number}**!",
+        ];
+
+
+        // === FUNÇÕES TTS (PCM -> WAV) ===
+
+        /**
+         * Converte uma string Base64 em um ArrayBuffer.
+         */
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        /**
+         * Converte dados PCM de 16 bits para um Blob WAV.
+         */
+        function pcmToWav(pcm16, sampleRate = 24000) {
+            const numChannels = 1;
+            const bytesPerSample = 2; // 16 bits
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+
+            const buffer = new ArrayBuffer(44 + pcm16.length * bytesPerSample);
+            const view = new DataView(buffer);
+
+            // RIFF chunk
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcm16.length * bytesPerSample, true);
+            writeString(view, 8, 'WAVE');
+
+            // FMT sub-chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // Sub-chunk size: 16
+            view.setUint16(20, 1, true); // Audio format: 1 (PCM)
+            view.setUint16(22, numChannels, true); // Number of channels
+            view.setUint32(24, sampleRate, true); // Sample rate
+            view.setUint32(28, byteRate, true); // Byte rate
+            view.setUint16(32, blockAlign, true); // Block align
+            view.setUint16(34, bytesPerSample * 8, true); // Bits per sample
+
+            // DATA sub-chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcm16.length * bytesPerSample, true); // Data size
+
+            // Write PCM data
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(offset, pcm16[i], true);
+                offset += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+        
+        /**
+         * Gera e reproduz o áudio TTS.
+         * @param {string} text - O texto a ser falado.
+         * @returns {Promise<void>} - Resolve quando a reprodução termina.
+         */
+        async function speakText(text) {
+            if (!text) return;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: text }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: TTS_VOICE }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            soundIconElement.classList.add('opacity-100', 'text-speaking');
+
+            try {
+                let response = await fetchWithRetry(TTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    // Extrai a sample rate (ex: audio/L16;rate=24000)
+                    const rateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                    
+                    // Converte base64 para ArrayBuffer e depois para Int16Array (PCM 16-bit)
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    
+                    // Converte PCM para Blob WAV e cria a URL
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    // Reproduz
+                    ttsAudio.src = audioUrl;
+                    
+                    return new Promise((resolve) => {
+                        ttsAudio.onended = () => {
+                            URL.revokeObjectURL(audioUrl); // Limpa a URL do Blob
+                            soundIconElement.classList.remove('opacity-100', 'text-speaking');
+                            resolve();
+                        };
+                        ttsAudio.play().catch(e => {
+                            console.error("Erro ao tentar tocar áudio:", e);
+                            soundIconElement.classList.remove('opacity-100', 'text-speaking');
+                            resolve(); // Resolve mesmo se houver erro de reprodução
+                        });
+                    });
+                } else {
+                    console.error("Resposta de áudio inválida ou incompleta.");
+                }
+
+            } catch (error) {
+                console.error("Erro na chamada TTS:", error);
+            } finally {
+                // Remove o ícone de som caso não tenha resolvido pela promessa (ex: erro)
+                soundIconElement.classList.remove('opacity-100', 'text-speaking');
+            }
+        }
+        
+        /**
+         * Wrapper de fetch com retry para lidar com throttling.
+         */
+        async function fetchWithRetry(url, options, maxRetries = 5, delay = 1000) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status !== 429) { // 429 Too Many Requests
+                        return response;
+                    }
+                } catch (error) {
+                    // Ignora erros de rede e tenta novamente
+                    if (i === maxRetries - 1) throw error;
+                }
+                await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
+            }
+            throw new Error('Falha na requisição após várias tentativas.');
+        }
+
+
+        // === FUNÇÕES DE LÓGICA DO JOGO ===
+
+        /**
+         * Inicializa o jogo.
+         */
+        function initializeGame() {
+            availableNumbers = Array.from({ length: MAX_NUMBER }, (_, i) => i + 1);
+            drawnNumbers = [];
+            
+            lastDrawnElement.textContent = '--';
+            drawnHistoryElement.innerHTML = '';
+            messageTextElement.textContent = 'Pronto para começar!';
+            updateDrawnCount();
+            drawButton.disabled = false;
+            lastDrawnElement.classList.remove('drawing', 'revealed');
+            isDrawing = false;
+        }
+
+        /**
+         * Atualiza a contagem de números sorteados.
+         */
+        function updateDrawnCount() {
+            drawnCountElement.textContent = drawnNumbers.length;
+        }
+
+        /**
+         * Orquestra o sorteio, suspense e comunicação.
+         */
+        async function drawNumber() {
+            if (isDrawing) return;
+            isDrawing = true;
+            drawButton.disabled = true;
+            lastDrawnElement.classList.remove('revealed');
+            lastDrawnElement.textContent = '--';
+
+            if (availableNumbers.length === 0) {
+                messageTextElement.textContent = 'FIM DE JOGO! Todos os 99 números foram sorteados.';
+                drawButton.disabled = true;
+                isDrawing = false;
+                return;
+            }
+
+            // 1. Fase de Pré-Sorteio (Suspense)
+            const prePhraseIndex = Math.floor(Math.random() * PRE_DRAW_PHRASES.length);
+            const prePhrase = PRE_DRAW_PHRASES[prePhraseIndex];
+            messageTextElement.textContent = prePhrase;
+
+            // Toca a frase e aguarda (em paralelo com o suspense)
+            const speakPromise = speakText(prePhrase);
+            
+            // 2. Animação e Delay (3 segundos)
+            lastDrawnElement.classList.add('drawing');
+            
+            await new Promise(resolve => setTimeout(resolve, DRAW_DELAY_MS));
+            
+            // Aguarda o término da fala antes de revelar o número, se a fala for maior que 3s
+            await speakPromise; 
+            
+            // 3. Sorteio do Número
+            const randomIndex = Math.floor(Math.random() * availableNumbers.length);
+            const drawn = availableNumbers.splice(randomIndex, 1)[0]; 
+            drawnNumbers.push(drawn);
+            const drawnText = String(drawn).padStart(2, '0');
+
+            // 4. Revelação do Número
+            lastDrawnElement.textContent = drawnText;
+            lastDrawnElement.classList.remove('drawing');
+            lastDrawnElement.classList.add('revealed');
+
+            // 5. Fase de Pós-Sorteio (Comemoração)
+            const postPhraseIndex = Math.floor(Math.random() * POST_DRAW_PHRASES.length);
+            let postPhrase = POST_DRAW_PHRASES[postPhraseIndex].replace('{number}', drawnText);
+            
+            messageTextElement.textContent = postPhrase;
+            
+            // Toca a frase de comemoração
+            await speakText(postPhrase);
+            
+            // 6. Atualização e Fim
+            updateHistory(drawn);
+            updateDrawnCount();
+            
+            drawButton.disabled = false;
+            isDrawing = false;
+        }
+
+        /**
+         * Adiciona o número sorteado ao histórico visual.
+         */
+        function updateHistory(number) {
+            const lastDrawnInHistory = drawnHistoryElement.querySelector('.last-drawn');
+            if (lastDrawnInHistory) {
+                lastDrawnInHistory.classList.remove('last-drawn');
+            }
+
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-number last-drawn';
+            historyItem.textContent = String(number).padStart(2, '0');
+            
+            drawnHistoryElement.appendChild(historyItem);
+            
+            // Rola o histórico para ver o número mais recente
+            drawnHistoryElement.scrollTop = drawnHistoryElement.scrollHeight;
+        }
+
+        // --- Listeners de Eventos ---
+        drawButton.addEventListener('click', drawNumber);
+        resetButton.addEventListener('click', initializeGame);
+
+        // Inicializa o jogo ao carregar a página
+        document.addEventListener('DOMContentLoaded', initializeGame);
+
+    </script>
+</body>
+</html>
