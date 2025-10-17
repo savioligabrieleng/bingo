@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu de Jogos - Bingo e Mais</title>
+    <!-- Carrega Tailwind CSS para estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 min-h-screen flex items-center justify-center">
+
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-8 sm:p-12 text-center">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-6 border-b pb-4">
+            Escolha um Jogo
+        </h1>
+        <p class="text-lg text-gray-600 mb-8">
+            Clique no jogo que você deseja iniciar.
+        </p>
+
+        <div class="space-y-6">
+            <!-- Jogo 1: Bingo -->
+            <a href="bingo.html" 
+               class="block p-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl rounded-xl transition duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]">
+                Sorteador de Bingo (1-99)
+            </a>
+
+            <!-- Jogo 2: Cara ou Coroa -->
+            <a href="cara_ou_coroa.html" 
+               class="block p-5 bg-green-600 hover:bg-green-700 text-white font-bold text-xl rounded-xl transition duration-300 shadow-lg transform hover:scale-[1.02] active:scale-[0.98]">
+                Cara ou Coroa
+            </a>
+
+            <!-- Adicionar mais jogos aqui -->
+            <!-- Exemplo:
+            <a href="outro_jogo.html" class="block p-5 bg-yellow-600 ...">
+                Novo Jogo
+            </a> 
+            -->
+        </div>
+        
+        <p class="mt-10 text-sm text-gray-400">
+            Hospedado via GitHub Pages.
+        </p>
+    </div>
+
+</body>
+</html>
